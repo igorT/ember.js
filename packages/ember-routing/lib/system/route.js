@@ -1549,6 +1549,18 @@ var Route = EmberObject.extend(ActionHandler, {
   */
   modelFor: function(name) {
     var route = this.container.lookup('route:' + name);
+    if (!route) {
+      var handlers = this.router.router.recognizer.handlersFor(this.routeName);
+      for (var i = handlers.length - 1; i >= 0;  i--) {
+        var shortNames = handlers[i].handler.split('.');
+        if (shortNames[shortNames.length - 1] === name) {
+          name = shortNames[shortNames.length - 1];
+          route = this.container.lookup('route:' + shortNames.join('.'));
+          break;
+        }
+      }
+    }
+
     var transition = this.router ? this.router.router.activeTransition : null;
 
     // If we are mid-transition, we want to try and look up

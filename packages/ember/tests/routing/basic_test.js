@@ -1711,6 +1711,56 @@ test("It is possible to get the model from a parent route", function() {
   handleURL("/posts/3/comments");
 });
 
+test("modelFor falls back to a simple route name", function() {
+  expect(6);
+
+  Router.map(function() {
+    this.resource("the_post", { path: "/posts/:post_id" }, function() {
+      this.route("comments", function() {
+        this.route('wycats');
+      });
+    });
+  });
+
+  var post1 = {}, post2 = {}, post3 = {}, currentPost;
+
+  var posts = {
+    1: post1,
+    2: post2,
+    3: post3
+  };
+
+  App.ThePostRoute = Ember.Route.extend({
+    model: function(params) {
+      return posts[params.post_id];
+    }
+  });
+
+  App.ThePostCommentsRoute = Ember.Route.extend({
+    model: function(params) {
+      return this.modelFor('the_post');
+    }
+  });
+
+  App.ThePostCommentsWycatsRoute = Ember.Route.extend({
+    model: function() {
+      // Allow both underscore / camelCase format.
+      equal(this.modelFor('comments'), currentPost);
+    }
+  });
+
+  bootApplication();
+
+  currentPost = post1;
+  handleURL("/posts/1/comments/wycats");
+
+  currentPost = post2;
+  handleURL("/posts/2/comments/wycats");
+
+  currentPost = post3;
+  handleURL("/posts/3/comments/wycats");
+});
+
 test("A redirection hook is provided", function() {
   Router.map(function() {
     this.route("choose", { path: "/" });
